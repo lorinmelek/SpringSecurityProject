@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +28,8 @@ public class securityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtFilter jwtFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable());//csrf devre dışı bırkaıyorum.
@@ -34,10 +37,12 @@ public class securityConfig {
 
         // Spring Security ile yetkilendirme yapıyoruz.
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("register", "login")
+                .requestMatchers("/register", "/login")
                 .permitAll()
                 .anyRequest().authenticated());//burada yetkilendirme yapılıyor login olmadan sayfalar açılmıyor.
+
         //http.formLogin(Customizer.withDefaults());
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         http.httpBasic(Customizer.withDefaults());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));//formu devre dışı bırakıyor.
 
